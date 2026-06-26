@@ -4,6 +4,7 @@
 
 import express from "express";
 import cors from "cors";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -21,6 +22,13 @@ app.use(express.json());
 
 // Parse URL encoded data (forms)
 app.use(express.urlencoded({ extended: true }));
+
+/**
+ * ========================
+ * ROUTES SETUP
+ * ========================
+ */
+app.use("/api/v1/auth", authRoutes);
 
 /**
  * ========================

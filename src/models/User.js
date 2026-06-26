@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
 
 /**
  * =========================
  * USER SCHEMA
- * HelloLobby - Authentication Core Model
+ * HelloLobby - Core Auth Model
  * =========================
  */
 
@@ -47,7 +46,11 @@ const userSchema = new mongoose.Schema(
     },
 
     // Security fields
-    passwordChangedAt: Date,
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
+
     passwordResetToken: String,
     passwordResetExpires: Date,
 
@@ -61,26 +64,13 @@ const userSchema = new mongoose.Schema(
 
 /**
  * =========================
- * PASSWORD HASHING MIDDLEWARE
+ * INSTANCE METHOD
+ * PASSWORD COMPARISON
  * =========================
  */
-userSchema.pre("save", async function (next) {
-  // Only hash if password is modified
-  if (!this.isModified("password")) return next();
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-
-  next();
-});
-
-/**
- * =========================
- * PASSWORD COMPARISON METHOD
- * =========================
- */
-userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.comparePassword = async function (enteredPassword, hashedPassword) {
+  const bcrypt = await import("bcryptjs");
+  return await bcrypt.default.compare(enteredPassword, hashedPassword);
 };
 
 const User = mongoose.model("User", userSchema);

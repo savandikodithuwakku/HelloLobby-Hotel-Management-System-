@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../user/user.model.js";
+import jwt from "jsonwebtoken";
 
 /**
  * =========================
@@ -39,3 +40,55 @@ export const registerUserService = async (userData) => {
     createdAt: user.createdAt,
   };
 };
+
+/**
+ * =========================
+ * LOGIN USER SERVICE
+ * =========================
+ */
+
+export const loginUserService = async (email, password) => {
+  // 1. Find user (include password explicitly)
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user) {
+    throw new Error("Invalid email or password");
+  }
+
+  // 2. Compare password
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    throw new Error("Invalid email or password");
+  }
+
+  // 3. Generate JWT Token
+  const token = jwt.sign(
+    {
+      id: user._id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    }
+  );
+
+  // 4. Return safe response
+  return {
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  };
+};
+
+// ✔ bcrypt.compare()
+// compares plain password vs hashed password
+// ✔ jwt.sign()
+// creates secure token
+// ✔ select("+password")
+// overrides Mongoose protection

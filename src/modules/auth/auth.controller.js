@@ -1,4 +1,4 @@
-import { registerUserService } from "../services/auth.service.js";
+import { registerUserService } from "./auth.service.js";
 
 /**
  * =========================
